@@ -13,7 +13,6 @@ All gateway events in Discord are tagged with an opcode that denotes the payload
 | 2 | Identify | Send | used for client handshake |
 | 3 | Status Update | Send | used to update the client status |
 | 4 | Voice State Update | Send | used to join/move/leave voice channels |
-| 5 | Voice Server Ping | Send | used for voice ping checking |
 | 6 | Resume | Send | used to resume a closed connection |
 | 7 | Reconnect | Receive | used to tell clients to reconnect to the gateway |
 | 8 | Request Guild Members | Send | used to request guild members |
@@ -69,7 +68,7 @@ Our voice gateways have their own set of opcodes and close codes.
 | 4009 | Session timeout | Your session has timed out. |
 | 4011 | Server not found | We can't find the server you're trying to connect to. |
 | 4012 | Unknown Protocol | We didn't recognize the [protocol](#DOCS_RESOURCES_VOICE_CONNECTIONS/establishing-a-voice-udp-connection-example-select-protocol-payload) you sent. |
-| 4014 | Disconnected | Oh no! You've been disconnected! Try [resuming](#DOCS_RESOURCES_VOICE_CONNECTIONS/resuming-voice-connection). |
+| 4014 | Disconnected | Either the channel was deleted or you were kicked. Should not reconnect. |
 | 4015 | Voice server crashed | The server crashed. Our bad! Try [resuming](#DOCS_RESOURCES_VOICE_CONNECTIONS/resuming-voice-connection). |
 | 4016 | Unknown Encryption Mode | We didn't recognize your [encryption](#DOCS_RESOURCES_VOICE_CONNECTIONS/encrypting-and-sending-voice). |
 
@@ -117,6 +116,7 @@ Along with the HTTP error code, our API can also return more detailed error code
 | 10012 | Unknown token |
 | 10013 | Unknown user |
 | 10014 | Unknown Emoji |
+| 10015 | Unknown Webhook |
 | 20001 | Bots cannot use this endpoint |
 | 20002 | Only bots can use this endpoint |
 | 30001 | Maximum number of guilds reached (100) |
@@ -143,12 +143,15 @@ Along with the HTTP error code, our API can also return more detailed error code
 | 50015 | Note is too long |
 | 50016 | Provided too few or too many messages to delete. Must provide at least 2 and fewer than 100 messages to delete. |
 | 50019 | A message can only be pinned to the channel it was sent in |
+| 50020 | Invite code is either invalid or taken. |
 | 50021 | Cannot execute action on a system message |
+| 50025 | Invalid OAuth2 access token |
 | 50034 | A message provided was too old to bulk delete |
 | 50035 | Invalid Form Body |
 | 50036 | An invite was accepted to a guild the application's bot is not in |
 | 50041 | Invalid API version |
 | 90001 | Reaction blocked |
+| 130000 | Resource overloaded |
 
 ###### Example JSON Error Response
 
@@ -179,8 +182,8 @@ RPC is the [local Discord server](#DOCS_TOPICS_RPC/) running on localhost. Acces
 | 4009 | Invalid Token | sent when an invalid OAuth2 token is used to authorize or authenticate with |
 | 4010 | Invalid User | sent when the user id specified is invalid |
 | 5000 | OAuth2 Error | sent when a standard OAuth2 error occurred; check the data object for the OAuth 2 error information |
-| 5001 | Select Channel Timed Out | sent when an asyncronous SELECT_TEXT_CHANNEL/SELECT_VOICE_CHANNEL command times out |
-| 5002 | Get Guild Timed Out | sent when an asyncronous GET_GUILD command times out |
+| 5001 | Select Channel Timed Out | sent when an asynchronous SELECT_TEXT_CHANNEL/SELECT_VOICE_CHANNEL command times out |
+| 5002 | Get Guild Timed Out | sent when an asynchronous GET_GUILD command times out |
 | 5003 | Select Voice Force Required | sent when you try to join a user to a voice channel but the user is already in one |
 | 5004 | Capture Shortcut Already Listening | sent when you try to capture a shortcut key when already capturing one |
 

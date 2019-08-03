@@ -53,6 +53,11 @@ If our request succeeded, the gateway will respond with _two_ events—a [Voice 
 
 With this information, we can move on to establishing a voice websocket connection.
 
+> info
+> Bot users respect the voice channel's user limit, if set. When the voice channel is full, you will not receive
+> the Voice State Update or Voice Server Update events in response to your own Voice State Update. Having `MANAGE_CHANNELS`
+> permission bypasses this limit and allows you to join regardless of the channel being full or not.
+
 ## Establishing a Voice Websocket Connection
 
 Once we retrieve a session\_id, token, and endpoint information, we can connect and handshake with the voice server over another secure websocket. Unlike the gateway endpoint we receive in an HTTP [Get Gateway](#DOCS_TOPICS_GATEWAY/get-gateway) request, the endpoint received from our [Voice Server Update](#DOCS_TOPICS_GATEWAY/voice-server-update) payload does not contain a URL protocol, so some libraries may require manually prepending it with "wss://" before connecting. Once connected to the voice websocket endpoint, we can send an [Opcode 0 Identify](#DOCS_TOPICS_OPCODES_AND_STATUS_CODES/voice-opcodes) payload with our server\_id, user\_id, session\_id, and token:
@@ -71,7 +76,7 @@ Once we retrieve a session\_id, token, and endpoint information, we can connect 
 }
 ```
 
-The voice server should respond with an [Opcode 2 Ready](#DOCS_TOPICS_OPCODES_AND_STATUS_CODES/voice-opcodes) payload, which informs us of the `ssrc`, UDP port, and supported encryption modes the voice server expects:
+The voice server should respond with an [Opcode 2 Ready](#DOCS_TOPICS_OPCODES_AND_STATUS_CODES/voice-opcodes) payload, which informs us of the `ssrc`, UDP IP/port, and supported encryption modes the voice server expects:
 
 ###### Example Voice Ready Payload
 
@@ -80,6 +85,7 @@ The voice server should respond with an [Opcode 2 Ready](#DOCS_TOPICS_OPCODES_AN
 	"op": 2,
 	"d": {
 		"ssrc": 1,
+		"ip": "127.0.0.1",
 		"port": 1234,
 		"modes": ["plain", "xsalsa20_poly1305"],
 		"heartbeat_interval": 1
@@ -102,7 +108,7 @@ In order to maintain your websocket connection, you need to continuously send he
 }
 ```
 
-###### Exmaple Hello Payload V3
+###### Example Hello Payload V3
 
 ```json
 {
@@ -142,7 +148,7 @@ In return, you will be sent back an [Opcode 6 Heartbeat ACK](#DOCS_TOPICS_OPCODE
 
 ## Establishing a Voice UDP Connection
 
-Once we receive the properties of a UDP voice server from our [Opcode 2 Ready](#DOCS_TOPICS_OPCODES_AND_STATUS_CODES/voice-opcodes) payload, we can proceed to the final step of voice connections, which entails establishing and handshaking a UDP connection for voice data. First, we open a UDP connection to the same endpoint we originally received in the [Voice Server Update](#DOCS_TOPICS_GATEWAY/voice-server-update) payload, combined with the port we received in the Voice Ready payload. If required, we can now perform an [IP Discovery](#DOCS_RESOURCES_VOICE_CONNECTIONS/ip-discovery) using this connection. Once we've fully discovered our external IP and UDP port, we can then tell the voice websocket what it is, and start receiving/sending data. We do this using [Opcode 1 Select Protocol](#DOCS_TOPICS_OPCODES_AND_STATUS_CODES/voice-opcodes):
+Once we receive the properties of a UDP voice server from our [Opcode 2 Ready](#DOCS_TOPICS_OPCODES_AND_STATUS_CODES/voice-opcodes) payload, we can proceed to the final step of voice connections, which entails establishing and handshaking a UDP connection for voice data. First, we open a UDP connection to the IP and port provided in the Ready payload. If required, we can now perform an [IP Discovery](#DOCS_RESOURCES_VOICE_CONNECTIONS/ip-discovery) using this connection. Once we've fully discovered our external IP and UDP port, we can then tell the voice websocket what it is, and start receiving/sending data. We do this using [Opcode 1 Select Protocol](#DOCS_TOPICS_OPCODES_AND_STATUS_CODES/voice-opcodes):
 
 >warn
 >The plain mode is no longer supported. All data should be sent using a supported encryption method, right now only `xsalsa20_poly1305`.
@@ -181,17 +187,18 @@ Finally, the voice server will respond with a [Opcode 4 Session Description](#DO
 
 ## Encrypting and Sending Voice
 
-Voice data sent to discord should be encoded with [Opus](https://www.opus-codec.org/), using two channels (stereo) and a sample rate of 48kHz. Voice Data is sent using a [RTP Header](http://www.rfcreader.com/#rfc3550_line548), followed by encrypted Opus audio data. Voice encryption uses the key passed in [Opcode 4 Session Description](#DOCS_TOPICS_OPCODES_AND_STATUS_CODES/voice-opcodes) combined with the 24 byte header (used as a nonce, appended with 12 null bytes), encrypted with [libsodium](https://download.libsodium.org/doc/):
+Voice data sent to discord should be encoded with [Opus](https://www.opus-codec.org/), using two channels (stereo) and a sample rate of 48kHz. Voice Data is sent using a [RTP Header](http://www.rfcreader.com/#rfc3550_line548), followed by encrypted Opus audio data. Voice encryption uses the key passed in [Opcode 4 Session Description](#DOCS_TOPICS_OPCODES_AND_STATUS_CODES/voice-opcodes) and the nonce formed with the 12 byte header appended with 12 null bytes to achieve the 24 required by xsalsa20_poly1305. Discord encrypts with the [libsodium](https://download.libsodium.org/doc/) encryption library.
 
-###### Encrypted Voice Packet Header Structure
+###### Voice Packet Structure
 
 | Field | Type | Size |
 |--------|--------|--------|
 | Type | Single byte value of `0x80` | 1 byte |
 | Version | Single byte value of `0x78` | 1 byte |
-| Sequence | unsigned short (big endian) | 2 bytes |
-| Timestamp | unsigned int (big endian) | 4 bytes |
-| SSRC | unsigned int (big endian) | 4 bytes |
+| Sequence | Unsigned short (big endian) | 2 bytes |
+| Timestamp | Unsigned integer (big endian) | 4 bytes |
+| SSRC | Unsigned integer (big endian) | 4 bytes |
+| Encrypted audio | Binary data | n bytes |
 
 ## Speaking
 

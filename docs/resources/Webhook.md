@@ -39,22 +39,22 @@ Used to represent a webhook.
 
 ## Create Webhook % POST /channels/{channel.id#DOCS_RESOURCES_CHANNEL/channel-object}/webhooks
 
-Create a new webhook. Requires the 'MANAGE_WEBHOOKS' permission. Returns a [webhook](#DOCS_RESOURCES_WEBHOOK/webhook-object) object on success.
+Create a new webhook. Requires the `MANAGE_WEBHOOKS` permission. Returns a [webhook](#DOCS_RESOURCES_WEBHOOK/webhook-object) object on success.
 
 ###### JSON Params
 
 | Field | Type | Description |
 |-------|------|-------------|
 | name | string | name of the webhook (2-32 characters) |
-| avatar | [avatar data](#DOCS_RESOURCES_USER/avatar-data) string | image for the default webhook avatar |
+| avatar | ?[avatar data](#DOCS_RESOURCES_USER/avatar-data) string | image for the default webhook avatar |
 
 ## Get Channel Webhooks % GET /channels/{channel.id#DOCS_RESOURCES_CHANNEL/channel-object}/webhooks
 
-Returns a list of channel [webhook](#DOCS_RESOURCES_WEBHOOK/webhook-object) objects. Requires the 'MANAGE_WEBHOOKS' permission.
+Returns a list of channel [webhook](#DOCS_RESOURCES_WEBHOOK/webhook-object) objects. Requires the `MANAGE_WEBHOOKS` permission.
 
 ## Get Guild Webhooks % GET /guilds/{guild.id#DOCS_RESOURCES_GUILD/guild-object}/webhooks
 
-Returns a list of guild [webhook](#DOCS_RESOURCES_WEBHOOK/webhook-object) objects. Requires the 'MANAGE_WEBHOOKS' permission.
+Returns a list of guild [webhook](#DOCS_RESOURCES_WEBHOOK/webhook-object) objects. Requires the `MANAGE_WEBHOOKS` permission.
 
 ## Get Webhook % GET /webhooks/{webhook.id#DOCS_RESOURCES_WEBHOOK/webhook-object}
 
@@ -66,7 +66,7 @@ Same as above, except this call does not require authentication and returns no u
 
 ## Modify Webhook % PATCH /webhooks/{webhook.id#DOCS_RESOURCES_WEBHOOK/webhook-object}
 
-Modify a webhook. Requires the 'MANAGE_WEBHOOKS' permission. Returns the updated [webhook](#DOCS_RESOURCES_WEBHOOK/webhook-object) object on success.
+Modify a webhook. Requires the `MANAGE_WEBHOOKS` permission. Returns the updated [webhook](#DOCS_RESOURCES_WEBHOOK/webhook-object) object on success.
 
 >info
 >All parameters to this endpoint are optional
@@ -100,7 +100,7 @@ Same as above, except this call does not require authentication.
 
 | Field | Type | Description | Required |
 |-------|------|-------------|----------|
-| wait | bool | waits for server confirmation of message send before response, and returns the created message body (defaults to `false`; when `false` a message that is not saved does not return an error) | false |
+| wait | boolean | waits for server confirmation of message send before response, and returns the created message body (defaults to `false`; when `false` a message that is not saved does not return an error) | false |
 
 ###### JSON/Form Params
 
@@ -109,9 +109,10 @@ Same as above, except this call does not require authentication.
 | content | string | the message contents (up to 2000 characters) | one of content, file, embeds |
 | username | string | override the default username of the webhook | false |
 | avatar_url | string | override the default avatar of the webhook | false |
-| tts | bool | true if this is a TTS message | false |
+| tts | boolean | true if this is a TTS message | false |
 | file | file contents | the contents of the file being sent | one of content, file, embeds |
 | embeds | array of [embed](#DOCS_RESOURCES_CHANNEL/embed-object) objects | embedded `rich` content | one of content, file, embeds |
+| payload_json | string | See [message create](#DOCS_RESOURCES_CHANNEL/create-message) | `multipart/form-data` only |
 
 >info
 >For the webhook embed objects, you can set every field except `type` (it will be `rich` regardless of if you try to set it), `provider`, `video`, and any `height`, `width`, or `proxy_url` values for images.
@@ -122,7 +123,7 @@ Same as above, except this call does not require authentication.
 
 | Field | Type | Description | Required |
 |-------|------|-------------|----------|
-| wait | bool | waits for server confirmation of message send before response (defaults to `true`; when `false` a message that is not saved does not return an error) | false |
+| wait | boolean | waits for server confirmation of message send before response (defaults to `true`; when `false` a message that is not saved does not return an error) | false |
 
 Refer to [Slack's documentation](https://api.slack.com/incoming-webhooks) for more information. We do not support Slack's `channel`, `icon_emoji`, `mrkdwn`, or `mrkdwn_in` properties.
 
@@ -132,6 +133,6 @@ Refer to [Slack's documentation](https://api.slack.com/incoming-webhooks) for mo
 
 | Field | Type | Description | Required |
 |-------|------|-------------|----------|
-| wait | bool | waits for server confirmation of message send before response (defaults to `true`; when `false` a message that is not saved does not return an error) | false |
+| wait | boolean | waits for server confirmation of message send before response (defaults to `true`; when `false` a message that is not saved does not return an error) | false |
 
 Add a new webhook to your GitHub repo (in the repo's settings), and use this endpoint as the "Payload URL." You can choose what events your Discord channel receives by choosing the "Let me select individual events" option and selecting individual events for the new webhook you're configuring.

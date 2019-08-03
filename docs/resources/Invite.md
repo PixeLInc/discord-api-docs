@@ -2,34 +2,49 @@
 
 ### Invite Object
 
-Represents a code that when used, adds a user to a guild.
+Represents a code that when used, adds a user to a guild or group DM channel.
 
 ###### Invite Structure
 
-| Field | Type | Description |
-|-------|------|-------------|
-| code | string | the invite code (unique ID) |
-| guild | partial [guild](#DOCS_RESOURCES_GUILD/guild-object) object | the guild this invite is for |
-| channel | partial [channel](#DOCS_RESOURCES_CHANNEL/channel-object) object | the channel this invite is for |
-| approximate_presence_count? | int | approximate count of online members |
-| approximate_member_count? | int | approximate count of total members |
+| Field                       | Type                                                             | Description                                                                |
+| --------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| code                        | string                                                           | the invite code (unique ID)                                                |
+| guild?                      | partial [guild](#DOCS_RESOURCES_GUILD/guild-object) object       | the guild this invite is for                                               |
+| channel                     | partial [channel](#DOCS_RESOURCES_CHANNEL/channel-object) object | the channel this invite is for                                             |
+| target_user                 | partial [user](#DOCS_RESOURCES_USER/user-object) object          | the target user for this invite                                            |
+| target_user_type?           | integer                                                          | the type of target user for this invite                                    |
+| approximate_presence_count? | integer                                                          | approximate count of online members (only present when target_user is set) |
+| approximate_member_count?   | integer                                                          | approximate count of total members                                         |
+
+###### Target User Type
+
+| Type   | Value |
+| ------ | ----- |
+| STREAM | 1     |
 
 ###### Example Invite Object
 
 ```json
 {
-	"code": "0vCdhLbwjZZTWZLD",
-	"guild": {
-		"id": "165176875973476352",
-		"name": "CS:GO Fraggers Only",
-		"splash": null,
-		"icon": null
-	},
-	"channel": {
-		"id": "165176875973476352",
-		"name": "illuminati",
-		"type": 0
-	}
+  "code": "0vCdhLbwjZZTWZLD",
+  "guild": {
+    "id": "165176875973476352",
+    "name": "CS:GO Fraggers Only",
+    "splash": null,
+    "icon": null
+  },
+  "channel": {
+    "id": "165176875973476352",
+    "name": "illuminati",
+    "type": 0
+  },
+  "target_user": {
+    "id": "165176875973476352",
+    "username": "bob",
+    "avatar": "deadbeef",
+    "discriminator": "#1234"
+  },
+  "target_user_type": 1
 }
 ```
 
@@ -37,27 +52,27 @@ Represents a code that when used, adds a user to a guild.
 
 ###### Invite Metadata Structure
 
-| Field | Type | Description |
-|-------|------|-------------|
-| inviter | a [user](#DOCS_RESOURCES_USER/user-object) object | user who created the invite |
-| uses | integer | number of times this invite has been used |
-| max_uses | integer | max number of times this invite can be used |
-| max_age | integer | duration (in seconds) after which the invite expires |
-| temporary | bool | whether this invite only grants temporary membership |
-| created_at | ISO8601 timestamp | when this invite was created |
-| revoked | bool | whether this invite is revoked |
+| Field      | Type                                            | Description                                          |
+| ---------- | ----------------------------------------------- | ---------------------------------------------------- |
+| inviter    | [user](#DOCS_RESOURCES_USER/user-object) object | user who created the invite                          |
+| uses       | integer                                         | number of times this invite has been used            |
+| max_uses   | integer                                         | max number of times this invite can be used          |
+| max_age    | integer                                         | duration (in seconds) after which the invite expires |
+| temporary  | boolean                                         | whether this invite only grants temporary membership |
+| created_at | ISO8601 timestamp                               | when this invite was created                         |
+| revoked    | boolean                                         | whether this invite is revoked                       |
 
 ###### Example Invite Metadata
 
 ```json
 {
-	"inviter": {},
-	"uses": 0,
-	"max_uses": 0,
-	"max_age": 0,
-	"temporary": false,
-	"created_at": "2016-03-31T19:15:39.954000+00:00",
-	"revoked": false
+  "inviter": {},
+  "uses": 0,
+  "max_uses": 0,
+  "max_age": 0,
+  "temporary": false,
+  "created_at": "2016-03-31T19:15:39.954000+00:00",
+  "revoked": false
 }
 ```
 
@@ -67,17 +82,10 @@ Returns an [invite](#DOCS_RESOURCES_INVITE/invite-object) object for the given c
 
 ###### Get Invite URL Parameters
 
-| Field | Type | Description |
-|-----------|------|-------------|
+| Field        | Type    | Description                                                 |
+| ------------ | ------- | ----------------------------------------------------------- |
 | with_counts? | boolean | whether the invite should contain approximate member counts |
 
 ## Delete Invite % DELETE /invites/{invite.code#DOCS_RESOURCES_INVITE/invite-object}
 
-Delete an invite. Requires the `MANAGE_CHANNELS` permission. Returns an [invite](#DOCS_RESOURCES_INVITE/invite-object) object on success.
-
-## Accept Invite % POST /invites/{invite.code#DOCS_RESOURCES_INVITE/invite-object}
-
->danger
->This endpoint is deprecated and will be discontinued on March 23, 2018. [Add Guild Member](#DOCS_RESOURCES_GUILD/add-guild-member) should be used in its place.
-
-Accept an invite. This requires the `guilds.join` OAuth2 scope to be able to accept invites on behalf of normal users (via an OAuth2 Bearer token). Bot users are disallowed. Returns an [invite](#DOCS_RESOURCES_INVITE/invite-object) object on success.
+Delete an invite. Requires the `MANAGE_CHANNELS` permission on the channel this invite belongs to, or `MANAGE_GUILD` to remove any invite across the guild. Returns an [invite](#DOCS_RESOURCES_INVITE/invite-object) object on success.

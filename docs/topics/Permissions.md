@@ -2,7 +2,21 @@
 
 Permissions in Discord are a way to limit and grant certain abilities to users. A set of base permissions can be configured at the guild level for different roles. When these roles are attached to users, they grant or revoke specific privileges within the guild. Along with the guild-level permissions, Discord also supports permission overwrites that can be assigned to individual guild roles or guild members on a per-channel basis.
 
-Permissions are stored within a 53-bit integer and are calculated using bitwise operations. The total permissions integer can be determined by ORing together each individual value. Additional logic is required when permission overwrites are involved; this is further explained below. For more information about bitwise operations and flags, see [this page](https://en.wikipedia.org/wiki/Bit_field).
+Permissions are stored within a 53-bit integer and are calculated using bitwise operations. The total permissions integer can be determined by ORing together each individual value, and flags can be checked using AND operations.
+
+```python
+# Permissions value that can Send Messages (0x800) and Add Reactions (0x40):
+permissions = 0x40 | 0x800 # 2112
+
+# Checking for flags that are set:
+(permissions & 0x40) == 0x40   # True
+(permissions & 0x800) == 0x800 # True
+
+# Kick Members (0x2) was not set:
+(permissions & 0x2) == 0x2 # False
+```
+
+Additional logic is required when permission overwrites are involved; this is further explained below. For more information about bitwise operations and flags, see [this page](https://en.wikipedia.org/wiki/Bit_field).
 
 Below is a table of all current permissions, their integer values in hexadecimal, brief descriptions of the privileges that they grant, and the channel type they apply to, if applicable.
 
@@ -33,6 +47,7 @@ Below is a table of all current permissions, their integer values in hexadecimal
 | DEAFEN\_MEMBERS | `0x00800000` | Allows for deafening of members in a voice channel | V |
 | MOVE\_MEMBERS | `0x01000000` | Allows for moving of members between voice channels | V |
 | USE\_VAD | `0x02000000` | Allows for using voice-activity-detection in a voice channel | V |
+| PRIORITY\_SPEAKER | `0x00000100` | Allows for using priority speaker in a voice channel | V |
 | CHANGE\_NICKNAME | `0x04000000` | Allows for modification of own nickname | |
 | MANAGE\_NICKNAMES | `0x08000000` | Allows for modification of other users nicknames | |
 | MANAGE\_ROLES * | `0x10000000` | Allows management and editing of roles | T, V |
@@ -47,10 +62,10 @@ Note that these internal permission names may be referred to differently by the 
 
 How permissions apply may at first seem intuitive, but there are some hidden restrictions that prevent bots from performing certain inappropriate actions based on a bot's highest role compared to its target's highest role. A bot's or user's highest role is its role that has the greatest position value in the guild, with the default @everyone role starting at 0. Permissions follow a hierarchy with the following rules:
 
-* A bot can grant roles to other users that are of a lower position than their highest role.
-* A bot can edit roles of a lower position than their highest role, but they can only grant permissions they have to those roles.
-* Bots can only sort roles lower than their highest role.
-* Bots can only kick/ban users whose highest role is lower than the bot's highest role.
+* A bot can grant roles to other users that are of a lower position than its own highest role.
+* A bot can edit roles of a lower position than its highest role, but it can only grant permissions it has to those roles.
+* A bot can only sort roles lower than its highest role.
+* A bot can only kick/ban users whose highest role is lower than the bot's highest role.
 
 Otherwise, permissions do not obey the role hierarchy. For example, a user has two roles: A and B. A denies the `VIEW_CHANNEL` permission on a #coolstuff channel. B allows the `VIEW_CHANNEL` permission on the same #coolstuff channel. The user would ultimately be able to view the #coolstuff channel, regardless of the role positions.
 
@@ -84,6 +99,8 @@ def compute_base_permissions(member, guild):
 
     if permissions & ADMINISTRATOR == ADMINISTRATOR:
         return ALL
+
+    return permissions
 
 def compute_overwrites(base_permissions, member, channel):
     # ADMINISTRATOR overrides any potential permission overwrites, so there is nothing to do here.
@@ -136,7 +153,7 @@ Permissions with regards to categories and channels within categories are a bit 
 
 ### Role Object
 
-Roles represent a set of permissions attached to a group of users. Roles have unique names, colors, and can be "pinned" to the side bar, causing their members to be listed separately. Roles are unique per guild, and can have separate permission profiles for the global context (guild) and channel context.
+Roles represent a set of permissions attached to a group of users. Roles have unique names, colors, and can be "pinned" to the side bar, causing their members to be listed separately. Roles are unique per guild, and can have separate permission profiles for the global context (guild) and channel context. The `@everyone` role has the same ID as the guild it belongs to.
 
 ###### Role Structure
 
@@ -145,11 +162,11 @@ Roles represent a set of permissions attached to a group of users. Roles have un
 | id | snowflake | role id |
 | name | string | role name |
 | color | integer | integer representation of hexadecimal color code |
-| hoist | bool | if this role is pinned in the user listing |
+| hoist | boolean | if this role is pinned in the user listing |
 | position | integer | position of this role |
 | permissions | integer | permission bit set |
-| managed | bool | whether this role is managed by an integration |
-| mentionable | bool | whether this role is mentionable |
+| managed | boolean | whether this role is managed by an integration |
+| mentionable | boolean | whether this role is mentionable |
 
 Roles without colors (`color == 0`) do not count towards the final computed color in the user list.
 

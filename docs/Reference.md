@@ -73,6 +73,18 @@ Discord utilizes Twitter's [snowflake](https://github.com/twitter/snowflake/tree
 
 ![snowflake-composition](snowflake.png)
 
+### Snowflake IDs in Pagination
+
+We typically use snowflake IDs in many of our API routes for pagination. The standardized pagination paradigm we utilize is one in which you can specify IDs `before` and `after` in combination with `limit` to retrieve a desired page of results. You will want to refer to the specific endpoint documentation for details.
+
+It is useful to note that snowflake IDs are just numbers with a timestamp, so when dealing with pagination where you want results from the beginning of time (in Discord Epoch, but `0` works here too) or before/after a specific time you can generate a snowflake ID for that time.
+
+###### Generating a snowflake ID from a Timestamp Example
+
+```
+timestamp_ms - DISCORD_EPOCH << 22
+```
+
 ## Nullable and Optional Resource Fields
 
 Resource fields that may contain a `null` value have types that are prefixed with a question mark.
@@ -163,10 +175,15 @@ Discord uses ids and hashes to render images in the client. These hashes can be 
 | Type | Path | Supports |
 | ---- | --- | -------- |
 | Custom Emoji | emojis/[emoji_id](#DOCS_RESOURCES_EMOJI/emoji-object).png | PNG, GIF |
-| Guild Icon | icons/[guild_id](#DOCS_RESOURCES_GUILD/guild-object)/[guild_icon](#DOCS_RESOURCES_GUILD/guild-object).png | PNG, JPEG, WebP |
+| Guild Icon | icons/[guild_id](#DOCS_RESOURCES_GUILD/guild-object)/[guild_icon](#DOCS_RESOURCES_GUILD/guild-object).png | PNG, JPEG, WebP, GIF |
 | Guild Splash | splashes/[guild_id](#DOCS_RESOURCES_GUILD/guild-object)/[guild_splash](#DOCS_RESOURCES_GUILD/guild-object).png | PNG, JPEG, WebP |
+| Guild Banner | banners/[guild_id](#DOCS_RESOURCES_GUILD/guild-object)/[guild_banner](#DOCS_RESOURCES_GUILD/guild-object).png | PNG, JPEG, WebP |
 | Default User Avatar | embed/avatars/[user_discriminator](#DOCS_RESOURCES_USER/user-object).png * | PNG |
-| User Avatar | avatars/[user_id](#DOCS_RESOURCES_USER/user-object)/[user_avatar](#DOCS_RESOURCES_USER/user-object).png | PNG, JPEG, WebP, GIF |
+| User Avatar | avatars/[user_id](#DOCS_RESOURCES_USER/user-object)/[user_avatar](#DOCS_RESOURCES_USER/user-object).png \*\* | PNG, JPEG, WebP, GIF |
 | Application Icon | app-icons/[application_id](#MY_APPLICATIONS/top)/[icon](#DOCS_TOPICS_OAUTH2/get-current-application-information).png | PNG, JPEG, WebP |
+| Application Asset | app-assets/[application_id](#MY_APPLICATIONS/top)/[asset_id](#DOCS_TOPICS_GATEWAY/activity-object-activity-assets).png | PNG, JPEG, WebP |
+| Team Icon | team-icons/[team_id](#DOCS_TOPICS_TEAMS/team-object)/[team_icon](#DOCS_TOPICS_TEAMS/team-object).png | PNG, JPEG, WebP |
 
 \* In the case of the Default User Avatar endpoint, the value for `user_discriminator` in the path should be the user's discriminator modulo 5—Test#1337 would be `1337 % 5`, which evaluates to 2.
+
+\*\* In the case of endpoints that support GIFs, the hash will begin with `a_` if it is available in GIF format. (example: `a_1269e74af4df7417b13759eae50c83dc`)
